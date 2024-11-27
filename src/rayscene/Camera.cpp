@@ -2,6 +2,7 @@
 #include <cmath>
 #include "Camera.hpp"
 #include "../raymath/Ray.hpp"
+#include <thread>
 
 struct RenderSegment
 {
@@ -64,6 +65,12 @@ void renderSegment(RenderSegment *segment)
 
 void Camera::render(Image &image, Scene &scene)
 {
+#ifdef ENABLE_MULTITHREADING
+  unsigned int nthreads = std::thread::hardware_concurrency();
+  std::vector<std::thread> threads;
+  // Calcul du nombre de lignes par section
+  int rowsPerThread = image.height / nthreads;
+#endif
 
   double ratio = (double)image.width / (double)image.height;
   double height = 1.0 / ratio;
@@ -73,16 +80,49 @@ void Camera::render(Image &image, Scene &scene)
 
   scene.prepare();
 
-  RenderSegment *seg = new RenderSegment();
-  seg->height = height;
-  seg->image = &image;
-  seg->scene = &scene;
-  seg->intervalX = intervalX;
-  seg->intervalY = intervalY;
-  seg->reflections = Reflections;
-  seg->rowMin = 0;
-  seg->rowMax = image.height;
-  renderSegment(seg);
+#ifdef ENABLE_MULTITHREADING
+  // Create a new thread for each segment by calling the function to be executed
+  // by the thread, and passing some parameters
+  for (int i = 0; i < nthreads; ++i)
+  {
+    // Déterminer les limites des lignes pour ce thread
+    int rowMin = i * rowsPerThread;
+    int rowMax = (i == nthreads - 1) ? image.height : rowMin + rowsPerThread;
+
+    RenderSegment *seg = new RenderSegment();
+    seg->height = height;
+    seg->image = &image;
+    seg->scene = &scene;
+    seg->intervalX = intervalX;
+    seg->intervalY = intervalY;
+    seg->reflections = Reflections;
+    seg->rowMin = rowMin;
+    seg->rowMax = rowMax;
+
+    threads.push_back(std::thread(renderSegment, seg));
+  }
+
+  // We will immediately end up here
+  // ... wait until all the threads are done before continuing
+
+  for (auto &thread : threads)
+  {
+    thread.join();
+  }
+#else
+  // Rendu séquentiel si le multithreading est désactivé
+  RenderSegment seg;
+  seg.height = height;
+  seg.image = &image;
+  seg.scene = &scene;
+  seg.intervalX = intervalX;
+  seg.intervalY = intervalY;
+  seg.reflections = Reflections;
+  seg.rowMin = 0;
+  seg.rowMax = image.height;
+
+  renderSegment(&seg);
+#endif
 }
 
 std::ostream &operator<<(std::ostream &_stream, Camera &cam)

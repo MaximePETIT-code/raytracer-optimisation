@@ -13,6 +13,7 @@ target_link_libraries(raytracer_tests
                       raymath
                       rayimage
                       lodepng
+                      Threads::Threads
                       )
 
 add_test(NAME RenderTestTwoSpheresOnPlane COMMAND raytracer_tests /app/scenes/two-spheres-on-plane.json /app/test/reference-two-spheres-on-plane.png /app/test/test-output-two-spheres-on-plane.png)
