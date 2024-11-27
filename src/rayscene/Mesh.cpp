@@ -65,14 +65,25 @@ void Mesh::applyTransform()
         triangles[i]->transform = transform;
         triangles[i]->applyTransform();
     }
+#ifdef ENABLE_BOUNDING_BOX
+    calculateBoundingBox();
+#endif
 }
 
 bool Mesh::intersects(Ray &r, Intersection &intersection, CullingType culling)
 {
-    Intersection tInter;
+#ifdef ENABLE_BOUNDING_BOX
+    // Verifiy if the ray intersects the bounding box to exclude the object if it doesn't
+    if (!boundingBox.intersects(r))
+    {
+        return false;
+    }
+#endif
 
+    Intersection tInter;
     double closestDistance = -1;
     Intersection closestInter;
+
     for (int i = 0; i < triangles.size(); ++i)
     {
         if (triangles[i]->intersects(r, tInter, culling))
@@ -94,4 +105,13 @@ bool Mesh::intersects(Ray &r, Intersection &intersection, CullingType culling)
 
     intersection = closestInter;
     return true;
+}
+
+void Mesh::calculateBoundingBox()
+{
+    boundingBox = AABB();
+    for (int i = 0; i < triangles.size(); ++i)
+    {
+        boundingBox.subsume(triangles[i]->getBoundingBox());
+    }
 }

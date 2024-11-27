@@ -15,63 +15,67 @@ void Sphere::applyTransform()
 {
   Vector3 c;
   this->center = this->transform.apply(c);
+#ifdef ENABLE_BOUNDING_BOX
+  calculateBoundingBox();
+#endif
 }
-
-// void Sphere::countPrimes() {
-//  int prime_counter = 0;
-//  for(int n = 2 ; n<1000 ; n++)
-//   {
-//     int count = 0;
-//     for (int i = 2; i <= i/2; i++)
-//     {
-//       if(n%i == 0) {
-//         count++;
-//       }
-//       if(count == 0)
-//       {
-//         prime_counter++;
-//       }  
-//     }
-//   }
-// }
 
 bool Sphere::intersects(Ray &r, Intersection &intersection, CullingType culling)
 {
+#ifdef ENABLE_BOUNDING_BOX
+  // Vérifie l'AABB pour exclure l'objet si le rayon ne l'intersecte pas
+  if (!boundingBox.intersects(r))
+  {
+    return false;
+  }
+#endif
+  // Pré-calculer les informations du rayon
+  const Vector3 &rayOrigin = r.GetPosition();
+  const Vector3 &rayDirection = r.GetDirection();
+
   // Vector from ray origin to center of sphere
-  Vector3 OC = center - r.GetPosition();
+  Vector3 OC = center - rayOrigin;
 
   // Project OC onto the ray
-  double tca = OC.dot(r.GetDirection());
-  
-  // If the projection is negative, the sphere is behind the ray origin
-  if (tca < 0)
+  Vector3 OP = OC.projectOn(rayDirection);
+
+  // If the OP vector is pointing in the opposite direction of the ray
+  // ... then it is behind the ray origin, ignore the object
+  if (OP.dot(rayDirection) <= 0)
   {
     return false;
   }
 
-  // Calculate the squared distance from the sphere center to the projection
-  double d2 = OC.dot(OC) - tca * tca;
-  double radius2 = radius * radius;
+  // P is the corner of the right-angle triangle formed by O-C-P
+  Vector3 P = rayOrigin + OP;
 
-  // If the distance is greater than the radius, there is no intersection
-  if (d2 > radius2)
+  // Is the length of CP greater than the radius of the circle ? If yes, no intersection!
+  Vector3 CP = P - center;
+  double distanceSquared = CP.lengthSquared();
+  double radiusSquared = radius * radius;
+  if (distanceSquared > radiusSquared)
   {
     return false;
   }
 
-  // Calculate the distance from the projection to the intersection points
-  double thc = sqrt(radius2 - d2);
+  // Calculer la distance du point d'intersection au long du rayon
+  double a = sqrt(radiusSquared - distanceSquared);
+  double t = OP.length() - a;
 
-  // Calculate the intersection point along the ray
-  double t = tca - thc;
-  Vector3 P1 = r.GetPosition() + (r.GetDirection() * t);
+  // Calculer le point exact d'intersection
+  Vector3 P1 = rayOrigin + rayDirection * t;
 
-  // Pre-calculate some useful values for rendering
+  // Préparer les informations d'intersection
   intersection.Position = P1;
   intersection.Mat = this->material;
   intersection.Normal = (P1 - center).normalize();
-  // Junk function!!
-  // countPrimes();
 
   return true;
+}
+
+void Sphere::calculateBoundingBox()
+{
+  Vector3 minPoint = center - Vector3(radius, radius, radius);
+  Vector3 maxPoint = center + Vector3(radius, radius, radius);
+  boundingBox = AABB(minPoint, maxPoint);
 }

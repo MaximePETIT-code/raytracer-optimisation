@@ -3,6 +3,9 @@
 #include <algorithm>
 #include "Triangle.hpp"
 #include "../raymath/Vector3.hpp"
+#include "../raymath/AABB.hpp"  // Ajoutez cette ligne
+
+#define COMPARE_ERROR_CONSTANT 0.000001  // Ajoutez cette ligne si elle n'est pas déjà définie
 
 Triangle::Triangle(Vector3 a, Vector3 b, Vector3 c) : SceneObject(), A(a), B(b), C(c)
 {
@@ -17,10 +20,22 @@ void Triangle::applyTransform()
   tA = this->transform.apply(A);
   tB = this->transform.apply(B);
   tC = this->transform.apply(C);
+
+#ifdef ENABLE_BOUNDING_BOX
+  calculateBoundingBox();
+#endif
 }
 
 bool Triangle::intersects(Ray &r, Intersection &intersection, CullingType culling)
 {
+// // Vérifie l'AABB pour exclure l'objet si le rayon ne l'intersecte pas
+#ifdef ENABLE_BOUNDING_BOX
+  if (!boundingBox.intersects(r))
+  {
+    return false;
+  }
+#endif
+
   Vector3 BA = tB - tA;
   Vector3 CA = tC - tA;
   Vector3 normal = BA.cross(CA).normalize();
@@ -81,4 +96,20 @@ bool Triangle::intersects(Ray &r, Intersection &intersection, CullingType cullin
   intersection.Normal = normal;
 
   return true;
+}
+
+void Triangle::calculateBoundingBox()
+{
+  double margin = COMPARE_ERROR_CONSTANT;
+  Vector3 minPoint = Vector3(
+    std::min({tA.x, tB.x, tC.x}) - margin,
+    std::min({tA.y, tB.y, tC.y}) - margin,
+    std::min({tA.z, tB.z, tC.z}) - margin
+  );
+  Vector3 maxPoint = Vector3(
+    std::max({tA.x, tB.x, tC.x}) + margin,
+    std::max({tA.y, tB.y, tC.y}) + margin,
+    std::max({tA.z, tB.z, tC.z}) + margin
+  );
+  boundingBox = AABB(minPoint, maxPoint);
 }

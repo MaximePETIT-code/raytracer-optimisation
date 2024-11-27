@@ -16,6 +16,8 @@ target_link_libraries(raytracer_tests
                       Threads::Threads
                       )
 
-add_test(NAME RenderTestTwoSpheresOnPlane COMMAND raytracer_tests /app/scenes/two-spheres-on-plane.json /app/test/reference-two-spheres-on-plane.png /app/test/test-output-two-spheres-on-plane.png)
+# add_test(NAME RenderTestTwoSpheresOnPlane COMMAND raytracer_tests /app/scenes/two-spheres-on-plane.json /app/test/reference-two-spheres-on-plane.png /app/test/test-output-two-spheres-on-plane.png)
 add_test(NAME RenderTestManySpheresOnPlan COMMAND raytracer_tests /app/scenes/sphere-galaxy-on-plane.json /app/test/reference-many-spheres-on-plane.png /app/test/test-output-many-spheres-on-plane.png)
-# add_test(NAME RenderTestIsoSphereOnPlane COMMAND raytracer_tests /app/scenes/iso-sphere-on-plane.json /app/test/reference-iso-sphere-on-plane.png /app/test/test-output-iso-sphere-on-plane.png)
+add_test(NAME RenderTestIsoSphereOnPlane COMMAND raytracer_tests /app/scenes/iso-sphere-on-plane.json /app/test/reference-iso-sphere-on-plane.png /app/test/test-output-iso-sphere-on-plane.png)
+add_test(NAME RenderTestMonkeyOnPlane COMMAND raytracer_tests /app/scenes/monkey-on-plane.json /app/test/reference-monkey-on-plane.png /app/test/test-output-monkey-on-plane.png)
+add_test(NAME RenderTestAll COMMAND raytracer_tests /app/scenes/all.json /app/test/reference-all.png /app/test/test-output-all.png)

@@ -4,6 +4,16 @@ project(raytracer VERSION 0.1.0 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# ----- Bounding box
+# Bounding box by default
+option(ENABLE_BOUNDING_BOX "Enable bounding box for rendering" ON)
+
+if (ENABLE_BOUNDING_BOX)
+    add_compile_definitions(ENABLE_BOUNDING_BOX)
+else()
+    add_compile_definitions(DISABLE_BOUNDING_BOX)
+endif()
+
 # ----- Multithreading
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

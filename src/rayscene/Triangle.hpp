@@ -3,6 +3,7 @@
 #include "../raymath/Vector3.hpp"
 #include "../raymath/Color.hpp"
 #include "../raymath/Ray.hpp"
+#include "../raymath/AABB.hpp"
 #include "../raymath/Transform.hpp"
 
 class Triangle : public SceneObject
@@ -15,6 +16,7 @@ private:
   Vector3 tA;
   Vector3 tB;
   Vector3 tC;
+  AABB boundingBox;
 
 public:
   Triangle(Vector3 a, Vector3 b, Vector3 c);
@@ -24,4 +26,6 @@ public:
 
   virtual void applyTransform() override;
   virtual bool intersects(Ray &r, Intersection &intersection, CullingType culling) override;
+  void calculateBoundingBox(); // Méthode pour calculer l'AABB de la sphère
+  AABB getBoundingBox() const { return boundingBox; }
 };
