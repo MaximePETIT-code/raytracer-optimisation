@@ -10,7 +10,6 @@ class Sphere : public SceneObject
 private:
   Vector3 center;
   double radius;
-  AABB boundingBox;
 
 public:
   Sphere(double r);
@@ -18,8 +17,5 @@ public:
 
   virtual void applyTransform() override;
   virtual bool intersects(Ray &r, Intersection &intersection, CullingType culling) override;
-
-  // Bounding box
-  void calculateBoundingBox(); // Méthode pour calculer l'AABB de la sphère
-  // AABB getBoundingBox() const { return boundingBox; }
+  virtual void calculateBoundingBox() override;
 };

@@ -12,15 +12,13 @@ class Mesh : public SceneObject
 {
 private:
   std::vector<Triangle *> triangles;
-  AABB boundingBox;
 
 public:
   Mesh();
   ~Mesh();
 
   void loadFromObj(std::string path);
-
   virtual void applyTransform() override;
   virtual bool intersects(Ray &r, Intersection &intersection, CullingType culling) override;
-  void calculateBoundingBox();
+  virtual void calculateBoundingBox() override;
 };
